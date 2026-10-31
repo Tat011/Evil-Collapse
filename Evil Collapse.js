@@ -309,6 +309,8 @@ document.addEventListener('corru_resources_added', ()=>{
 //Attendant
   env.COMBAT_ACTORS.personnel_attendant.maxhp = [30];
   env.COMBAT_ACTORS.personnel_attendant.hp = [30];
+//Archival Golem
+  env.COMBAT_ACTORS.archival_golem.reactions = env.COMBAT_REACTIONS.basic_incoherent;
 //Basic Golem
   env.COMBAT_ACTORS.basic_golem.name = ["Standard Golem"];
   env.COMBAT_ACTORS.basic_golem.maxhp = [25];
@@ -320,11 +322,14 @@ document.addEventListener('corru_resources_added', ()=>{
   env.COMBAT_ACTORS.kivskin.maxhp = [40];
   env.COMBAT_ACTORS.kivskin.hp = [40];
 
-//Husk
 
 //Repairfriend
-
+  env.COMBAT_ACTORS.surgeon_golem.name = ["Repairfoe"];
+  env.COMBAT_ACTORS.surgeon_golem.hp = [30];
+  env.COMBAT_ACTORS.surgeon_golem_frame = {... env.COMBAT_ACTORS.surgeon_golem}
+  env.COMBAT_ACTORS.surgeon_golem_frame.hp = [15];
 //Constructor
+//Husk
 
 //Dozkallvi
 //Foundation Golem
@@ -436,10 +441,10 @@ document.addEventListener('corru_resources_added', ()=>{
 //Akizet (no contractions or capitalisations for any obesk stuff)
   env.COMBAT_ACTORS.akizet.reactions = {
             eviscerate: ["This is a test to see if this works, if you see this contact costumer support"],
-            frenzy: ["die—", "die!", "DIE-", "DIE!!", "ªœp—", "ªr%—", "ç2ªÔ!!", "¤¼C—", "{þÿU—", "&A^#3!!", "ßÃÆ#!!", "@#Æ$J!!", "$¤Vª1‡!", "Ff#$!!!", "ÎK^ßT!!", "i will not stop!", "again!", "bleed!", "i will tear you apart!", "no more of you!", "it is over!"],//Unique to Akizet
+            frenzy: ["die—", "die!", "DIE-", "DIE!!", "ªœp—", "ªr%—", "ç2ªÔ!!", "¤¼C—", "{þÿU—", "&A^#3!!", "ßÃÆ#!!", "@#Æ$J!!", "$¤Vª1‡!", "Fr#@!!!", "ÎK^ßT!!", "i will not stop!", "again!", "bleed!", "i will tear you apart!", "no more of you!", "it is over!"],//Unique to Akizet
             receive_hit: ["@#Æ$J", "Ff#$"],//these seem to only play when attacked by pain shelf lol
             receive_crit: ["ßÃÆM!!", "AH!"],
-            receive_puncture: ["i have felt worse", "a familiar feeling", "you will regret that", "i will not fall", "funfriend!", "i am used to it"],
+            receive_puncture: ["Ff#$", "i have felt worse", "a familiar feeling", "you will regret that", "i will not fall", "funfriend!", "i am used to it"],
             receive_destabilized: ["every cell... awake...", "velzie's glee", "it is kill or be killed", "i can work with this", "a high risk maneuver"],
             receive_fear: ["no, no...", "velzie forgive me", "velzie please", "it cannot be!", "STOP STOP STOP", "i know I KNOW I KNOW", "NO MORE NO MORE",
                           ()=>env.combat.has('husk') ? "the eyes..." : "so many gone...",
@@ -485,7 +490,7 @@ document.addEventListener('corru_resources_added', ()=>{
   env.COMBAT_ACTORS.gakvu.reactions = {
             receive_hit: ["@#Æ$J", "Ff#$"],
             receive_crit: ["ßÃÆM!!", "Æ!!"],
-            receive_puncture: ["i am... bleeding...?", "ow!! what...", "my cloak!", "it cut me!", "it is fine, i did not need that", "oh, great"],
+            receive_puncture: ["Ff#$", "i am... bleeding...?", "ow!! what...", "my cloak!", "it cut me!", "it is fine, i did not need that", "oh, great"],
             receive_destabilized: ["may velzie look away", "is my body supposed to do that?", "just need to not get hit", "all or nothing", "velzie is cackling"],
             receive_fear: ["stop looking at me!!", "get away from me!", "no, no no no", "what did it say??", "it is fine! this is fine! i am fine!", "i am not going back!", "you cannot!"],
             receive_stun: ["Ahg!", "ÇæÙ‡ß†!", "st-!"],
@@ -517,7 +522,7 @@ document.addEventListener('corru_resources_added', ()=>{
             receive_regen: ["just what i needed", "very nice", "now i can get hit again",
                             () => env.rpg?.lastAction?.user?.slug ? `many thanks, ${env.rpg?.lastAction?.user?.name?.toLowerCase()}` : "many thanks"],
             receive_spikes: ["cannot touch this", "HEY! OVER HERE!", "velzie must be a fan"],
-            receive_surge: ["double the gakvu", "hell yeah", "groundsmindry primed and ready"],
+            receive_surge: ["double the gakvu", "hell yeah", "groundsmindry primed and ready", "zzoust!"],
             receive_empowered: ["heh", "my turn now", "charged up", "groundsmindry plus"],
             give_vulnerable: ["feeling weak?", "i will not let you go", "you are in my grasp now", "feeling watched?", "avoid THIS"],
             give_redirection: ["what would you do without me?"],
@@ -527,7 +532,7 @@ document.addEventListener('corru_resources_added', ()=>{
   env.COMBAT_ACTORS.tozik.reactions = {
             receive_hit: ["Ah!"],
             receive_crit: ["Æ!!"],
-            receive_puncture: ["ÎK^ßJ!", "i can... just seal it...", "I am going to need a blink", "aÃgh!", "cover me", ""],
+            receive_puncture: ["Ff#$!", "ÎK^ßJ!", "i can... just seal it...", "I am going to need a blink", "aÃgh!", "cover me", ""],
             receive_destabilized: ["i hear it calling", "this is against safety protocols", "...what?", "...who?", "uUugh", ""],
             receive_fear: ["that cannot be", "s-stop...", "and yet it moves", "stop...", "",
                   ()=> env.rpg.is2D ? "there is nothing here" : "hollowed out...",
@@ -566,7 +571,7 @@ document.addEventListener('corru_resources_added', ()=>{
   env.COMBAT_ACTORS.tozik_npc.reactions = {
             receive_hit: ["Ah!"],
             receive_crit: ["Æ!!"],
-            receive_puncture: ["ÎK^ßJ!", "i can... just seal it...", "I am going to need a blink", "aÃgh!", "cover me", ""],
+            receive_puncture: ["Ff#$", "ÎK^ßJ!", "i can... just seal it...", "I am going to need a blink", "aÃgh!", "cover me", ""],
             receive_destabilized: ["i hear it calling", "this is against safety protocols", "...what?", "...who?", "uUugh", ""],
             receive_fear: ["that cannot be", "s-stop...", "and yet it moves", "stop...", "",
                   ()=> env.rpg.is2D ? "there is nothing here" : "hollowed out...",
@@ -608,7 +613,7 @@ document.addEventListener('corru_resources_added', ()=>{
             miltza_attack: ["This is a test to see if this works"],
             receive_hit: ["Ah!"],
             receive_crit: ["Æöö!!"],
-            receive_puncture: ["restorative, quick!", "bleeding!", "help me!", "help me out!"],
+            receive_puncture: ["Ff#$", "restorative, quick!", "bleeding!", "help me!", "help me out!"],
             receive_destabilized: ["die DIE!! DIE!! DIE!!!", "i feel sick", "my systems are compromised!", "you will SUFFER!!", "aAAAaah!"],
             receive_fear: ["stop...", "velzie take me from here", "stay away! away!!", "no no no!!",
                       ()=> env.rpg.is2D ? "this is not us! it is NOT!" : "it is not that! it is NOT!",
@@ -650,7 +655,7 @@ document.addEventListener('corru_resources_added', ()=>{
   env.COMBAT_ACTORS.bozko.reactions = {
             receive_hit: ["@#Æ$J", "Ff#$"],
             receive_crit: ["Æ!!", "you!"],
-            receive_puncture: ["how?", "it pierced my glass", "no...", "i am bleeding?",
+            receive_puncture: ["Ff#$", "how?", "it pierced my glass", "no...", "i am bleeding?",
                   ()=>env.combat.has('cavik') ? "cavik!" : "it punched through...",
                   ()=>env.combat.has('tozik') ? "tozik!" : "stop the bleeding"],
             receive_destabilized: ["i hear them again...", "this will work in my favor", "what...?", "...to crush them", "i am not deterred"],
@@ -690,7 +695,7 @@ document.addEventListener('corru_resources_added', ()=>{
   env.COMBAT_ACTORS.cavik.reactions = {
             receive_hit: ["ow!!"],
             receive_crit: ["ow, ow!!!"],
-            receive_puncture: ["oh no...", "dammit!", "@#Æ$J", "they hit me!"],
+            receive_puncture: ["Ff#$", "@#Æ$J", "oh no...", "dammit!", "they hit me!"],
             receive_destabilized: ["it hurts", "hurts", "i feel you", "pleas e", "they are everywhere"],
             receive_fear: ["akizet!!", "keep it away from me!", "h--help me!", "no, no no no", "stay back! stay back!",
                       ()=> env.rpg.is2D ? "speak no more! please!" : "i... i remember you..."],
@@ -729,7 +734,7 @@ document.addEventListener('corru_resources_added', ()=>{
    env.COMBAT_ACTORS.ikgolem.reactions = {
             receive_hit: ["@#Æ$J", "Ff#$"],
             receive_crit: ["how--?!"],
-            receive_puncture: ["the chassis!!", "they pierced the armor!"],
+            receive_puncture: ["Ff#$", "the chassis!!", "they pierced the armor!"],
             receive_destabilized: ["something is so wrong...", "i do not like this",
               ()=> env.rpg.is2D ? "we will sludge them all" : "i will sludge them all"],
             receive_fear: [()=> env.rpg.is2D ? "i am not stopping!" : "i feel sick...",
@@ -749,7 +754,7 @@ document.addEventListener('corru_resources_added', ()=>{
                   ()=> env.rpg.is2D ? "we cannot control it!" : "i cannot control it!"],
             regen: ["much better"],
             crit: ["ahaha...", "incredible!"],
-            miss: ["÷°ò!!", "lucky you", "next time"],
+            miss: ["÷°ò!!", "lucky you", "next time", "kelnit!", "kequvi!"],
             crit_buff: ["i hope that helps!"],
             receive_buff: ["excellent"],
             receive_rez: ["ah, it works again!", "back at it!", "it is gonna take more than that!", "functional again!"],
@@ -786,8 +791,9 @@ document.addEventListener('corru_resources_added', ()=>{
 
 //Evil Mode tutorial
   env.COMBAT_FORMATIONS.archive_intro.enemies = ["bstrdlight", "maintcloak", "container_evader", "archival_golem", "kivskin"];
+//Main
   env.COMBAT_FORMATIONS.archivecommon.enemies = ["bstrdlight", "husk_support", "maintcloak", "personnel_attendant", "husk_guard"];
-  env.COMBAT_FORMATIONS.archivecloaktainer.enemies = ["bstrdlight", "repairfriend", "husk_observer", "husk_striker", "archival_golem"];
+  env.COMBAT_FORMATIONS.archivecloaktainer.enemies = ["bstrdlight", "surgeon_golem", "husk_observer", "maintcloak", "husk_striker"];
 //Left
   env.COMBAT_FORMATIONS.archivedouble.enemies = ["bstrdlight", "bstrdlight", "maintcloak", "archival_golem", "archival_golem"];
 //Right
