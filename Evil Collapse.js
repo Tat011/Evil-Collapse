@@ -39,7 +39,6 @@ document.addEventListener('corru_resources_added', ()=>{
     addStatus({target: subject, origin, status: "weakened", length: 3, dontDrawIconLine: true});
     if(!hasStatus(subject, "weakened")) return;
     env.rpg.turnData[`${origin.id}-disabler`] = true;
-                
     drawEffectLine(this.status, subject, {
                     color: "neutral",
                     effectClass: "baseline icon thick",
@@ -93,7 +92,26 @@ document.addEventListener('corru_resources_added', ()=>{
 //item_surge
 //item_hope
 //item_translator
+//
 //Moves
+//Akizet Primary
+/* env.ACTIONS.scene_akizet_attack.details = {
+            flavor: `'test';'exploit wounds'`,
+            onUse: `'move to target';'assault three targets'`,
+            onHit: `'[STAT::amt] [STAT::kb]'`,
+            onCrit: `'[STATUS::open_wound]'`,
+            conditional: `<o-col>EVISCERATE::</o-col>'removes <n-col class="shiftdetail">up to 5T:</n-col>[STATUS::puncture] for additional damage<n-col class="shiftdetail"> ([STAT::amt] per T)</n-col>'`
+        };
+  env.ACTIONS.scene_akizet_attack.stats.status = {
+                puncture: {
+                    name: 'puncture',
+                    showReference: true
+                },
+                stun: {
+                    name: 'open_wound',
+                    length: 2
+                }
+            };*/
 //Self Destruct (Basic Golem)
   env.ACTIONS.special_self_destruct.stats = {
     accuracy: 0.75,
@@ -156,13 +174,246 @@ document.addEventListener('corru_resources_added', ()=>{
         rate: 0.75
       },
       critSfx: {
-        name: 'status',
-        rate: 0.5
+        name: 'megastatus',
       },
       hitStatus: this.stats.status.vulnerable,
       critStatus: this.stats.status.critical_flaw,
     });
   };
+//Pain Shelf Moves
+  env.ACTIONS.archiveshelf_withstand.details = {
+            flavor: "'strike a braced target'",
+            onHit: `'[STAT::amt] [STATUS::rot] [STATUS::puncture]'`,
+            onCrit: `'additional [STATUS::rot] [STATUS::puncture]'`,
+            conditional: `<em><o-col>USER::</o-col></em>'next options will be defensive'`,
+        };
+  env.ACTIONS.archiveshelf_withstand.stats = {
+    accuracy: 1,
+    crit: 0.25,
+    amt: 1,
+    status: {
+      rot: {
+        name: 'rot',
+        length: 1
+      },
+      puncture: {
+        name: 'puncture',
+        length: 2
+      }
+    }
+  };
+  env.ACTIONS.archiveshelf_withstand.exec = function(user, target, beingUsedAsync, {actionMessageIndex} = {}) {
+            user.currentChoiceSet = "defensive"
+            return env.GENERIC_ACTIONS.singleTarget({
+                action: this, 
+                user, 
+                target,
+                genExec: ()=> {
+                    addStatus({target: target, origin: user, status: "rot", length: 1})
+                    addStatus({target: target, origin: user, status: "puncture", length: 2})
+                },
+                critExec: ()=> {
+                    addStatus({target: target, origin: user, status: "rot", length: 1})
+                    addStatus({target: target, origin: user, status: "puncture", length: 2})
+                },
+            })
+  };
+
+  env.ACTIONS.archiveshelf_risky.details = {
+            flavor: "'overreach in attempt to strike dodging target'",
+            onHit: `'[STAT::amt]'`,
+            onCrit: `'[STATUS::stun] [STATUS::rot] [STATUS::puncture]'`,
+            conditional: `<em><o-col>USER::</o-col></em>'[STATUS::vulnerable]';'next options will be sweeping attacks'`,
+        };
+  env.ACTIONS.archiveshelf_risky.stats = {
+    accuracy: 0.5,
+    crit: 1,
+    amt: 2,
+    status: {
+      vulnerable: {
+        name: 'vulnerable',
+        length: 2
+      },
+      puncture: {
+        name: 'puncture',
+        length: 2
+      },
+      rot: {
+        name: 'rot',
+        length: 1
+      },
+      stun: {
+        name: 'stun',
+        length: 1
+      }
+    }
+  };
+  env.ACTIONS.archiveshelf_risky.exec = function(user, target, beingUsedAsync, {actionMessageIndex} = {}) {
+    user.currentChoiceSet = "offensive"
+    return env.GENERIC_ACTIONS.singleTarget({
+      action: this, 
+      user, 
+      target,
+      hitSfx: {
+        name: 'stab',
+        rate: 1
+      },
+      genExec: ()=> {
+        addStatus({target: user, origin: user, status: "vulnerable", length: 2})
+      },
+      critExec: ()=> {
+        addStatus({target: target, origin: user, status: "stun", length: 1})
+        addStatus({target: target, origin: user, status: "rot", length: 1})
+        addStatus({target: target, origin: user, status: "puncture", length: 2})
+      }
+    })
+  };
+
+  env.ACTIONS.archiveshelf_sweep.stats.details = {
+            flavor: "'strike entire opposing team with many limbs'",
+            onUse: `'HIT all targets twice'`,
+            onHit: `'[STAT::amt] [STATUS::vulnerable]'`,
+            onCrit: `'[STATUS::critical_flaw]'`,
+            conditional: `<em><o-col>USER::</o-col></em>'next options will be direct strikes'`,
+  };
+  env.ACTIONS.archiveshelf_sweep.stats.stats = {
+    accuracy: 0.8,
+    crit: 0.33,
+    amt: 2,
+    status: {
+      vulnerable: {name: "vulnerable", length: 3},
+      critical_flaw: {name: "critical_flaw", length: 3}
+    }
+  };
+//Movefoe
+  env.ACTIONS.special_movefoe_tumble.details = {
+            flavor: "'utilize volatile deconstruction tool'", // todo
+            onUse: `'HIT all foes'`,
+            onHit: `'[STAT::amt] [STATUS::vulnerable]'`,
+            onCrit: `'[STATUS::critical_flaw]'`
+        };
+  env.ACTIONS.special_movefoe_tumble.stats = {
+    accuracy: 0.8,
+    crit: 0.33,
+    amt: 2,
+    status: {
+      vulnerable: {name: "vulnerable", length: 3},
+      critical_flaw: {name: "critical_flaw", length: 3}
+    }
+  };
+  env.ACTIONS.special_movefoe_tumble.exec = function(user, target, beingUsedAsync) {
+            let action = this
+            env.rpg.classList.add("movetumble")
+            env.GENERIC_ACTIONS.teamWave({
+                team: user.enemyTeam,
+                extraDelay: 1000,
+                exec: (actor, i) => {                    
+                    for (let j = 0; j < 2; j++) {
+                        setTimeout(() => {
+                            let hit = env.GENERIC_ACTIONS.singleTarget({
+                                action: action, 
+                                user, 
+                                target: actor,
+                                hitStatus: {name: 'vulnerable',length: 3},
+                                critStatus: {name: 'critical_flaw',length: 3},
+                                critExec: ({target}) => {
+                                    target.box.classList.add('movetumble')
+                                    setTimeout(() => target.box.classList.remove('movetumble'), 1000)
+                                }
+                            })
+
+                            if(hit) env.rpg.effectMessage.action({
+                                user,
+                                target: actor,
+                                hit,
+                                reason: "tumble",
+                                action: `%TARGET is tossed around!`,
+                                specialHitText: hit == "crit" ? "%TARGET is thrown off balance!" : "%TARGET suffers an impact!",
+                            })
+
+                        }, j * env.ADVANCE_RATE * 0.25)                                           
+                    }
+                },
+                endCallback: ()=> setTimeout(()=>env.rpg.classList.remove("movetumble"), 5000),
+                advanceAfterExec: true, beingUsedAsync, user,
+            })
+        };
+        
+  env.ACTIONS.special_movefoe_collide.details.onCrit = `'[STATUS::stun] [STATUS::weakened]';'only stuns one target per turn'`
+  env.ACTIONS.special_movefoe_collide.stats = {
+            accuracy: 0.8,
+            crit: 0.5,
+            amt: 2,
+            status: {
+                stun: {name: "stun", length: 1},
+                weakened: {name: "weakened", length: 3}
+            }
+  };
+  env.ACTIONS.special_movefoe_collide.exec = function(user, target, beingUsedAsync) {
+            let action = this
+            env.rpg.classList.add("movecollide")
+
+            let hasStunned = false
+            env.GENERIC_ACTIONS.teamWave({
+                team: user.enemyTeam,
+                extraDelay: 1000,
+                exec: (actor, i) => {
+                    let hit = env.GENERIC_ACTIONS.singleTarget({
+                        action: action, 
+                        user, 
+                        target: actor,
+                        critSfx: {
+                            name: 'crit',
+                            rate: 0.75
+                        },
+                        critExec: ({target}) => {
+                            console.log("target found", target)
+                            playCombatCrit() // for whatever reason this doesn't happen
+                            target.box.classList.add('movecollide')
+                            setTimeout(() => target.box.classList.remove('movecollide'), 1000)
+                        }
+                    })
+                    //only stuns one person in a wave unless it's crittamode
+                    if(hit == "crit" && (!hasStunned || page.party.crittamode)) {
+                        addStatus({target: actor, origin: user, status: "stun", length: 1, dontDrawIconLine: true})
+                        addStatus({target: actor, origin: user, status: "weakened", length: 3, dontDrawIconLine: true})
+
+                        drawEffectLine(user.box, actor.box, {
+                            color: "obesk",
+                            effectClass: "baseline icon thick mega",
+                            duration: 5000,
+                            style: `--icon: url(/img/sprites/combat/statuses/stun.gif);`
+                        })
+                        hasStunned = true
+                    }
+                    if(hit) {
+                        env.rpg.effectMessage.action({
+                            user,
+                            target: actor,
+                            hit,
+                            isMinor: true,
+                            reason: "collide",
+                            action: "%TARGET stumbles from the collision!",
+                            specialHitText: hit == "crit" ? `%TARGET smashes into the wall${hasStunned ? '' : ' really hard'}!!` : `%TARGET suffers an impact!` 
+                        })
+                    }
+                },
+                endCallback: () => setTimeout(() => env.rpg.classList.remove("movecollide"), 3500),
+                advanceAfterExec: true, beingUsedAsync, user,
+            })
+        };
+
+  env.ACTIONS.special_movefoe_pry.exec = function(user, target) {
+            play('dull', 0.8, 1)
+            let summon = "movefoe_tendrils"
+            if(page.party.crittamode) summon = "movefoe_tendrils_frame"
+            midCombatActorAdd(user.team, summon, 'left')
+            midCombatActorAdd(user.team, summon, 'left')
+            midCombatActorAdd(user.team, summon, 'right')
+            midCombatActorAdd(user.team, summon, 'right')
+            user.usedPry = true
+            setTimeout(()=>advanceTurn(user), env.ADVANCE_RATE + 1000)
+        }
 //
 //Enemies
 //Shared enemy Dialogue
@@ -334,6 +585,7 @@ document.addEventListener('corru_resources_added', ()=>{
 //Dozkallvi
 //Foundation Golem
 //Painshelf
+  env.COMBAT_ACTORS.bstrdshelf.actions = ["special_archiveshelf_annihilate"];
   env.COMBAT_ACTORS.bstrdshelf.reactions = {
             receive_hit: ["...", "...weak...", "...not enough...", "...frail...", "...no..."],
             receive_crit: ["...won't stop...", "...can't stop...", "...can't back down...", "...cease..."],
@@ -344,7 +596,7 @@ document.addEventListener('corru_resources_added', ()=>{
             receive_vulnerable: ["...exposed...", "...unsafe...", "...the eyes...", "...you see..."],
             receive_weakened: ["...limbs...", "...dull...", "...blunt...", "...not enough..."],
             receive_open_wound: ["...open...", "...cracked...", "...incision...", "...never enough..."],
-            receive_rot: ["...formless..."],
+            receive_rot: ["...formless...", "...the we...", "...creation..."],
             dead: ["ËœÃ­Å“Ã·-â€™Â§#3(k!=XÅ’"],
             evade: ["...slow...", "...futile...", "...sluggish...", "...my turn..."],
             puncture: ["...the red...", "...crimson...", "...broken...", "...gash..."],
@@ -367,6 +619,7 @@ document.addEventListener('corru_resources_added', ()=>{
             give_redirection: ["...fear...", "...face me...", "...you...", "...hit me...", "...charge...", "...will not back down..."],
   };
 //BSTRD
+  env.COMBAT_ACTORS.bstrdboss.hp = [100];
   env.COMBAT_ACTORS.bstrdboss.reactions = {
             receive_hit: ["OW! just kidding ;-)", "that all? '_'", "i ALMSOT felt that :P", "tis only a scratch!", "ZZZZZZ"],
             receive_crit: ["NICE HIT!!!", "OW!!!!!!", "BAD ASS!", "COOL MOVES!", "Thas it!", "more of that! ;-)"],
@@ -797,7 +1050,7 @@ document.addEventListener('corru_resources_added', ()=>{
 //Left
   env.COMBAT_FORMATIONS.archivedouble.enemies = ["bstrdlight", "bstrdlight", "maintcloak", "archival_golem", "archival_golem"];
 //Right
-  env.COMBAT_FORMATIONS.archivecontainers.enemies = ["listener", "bstrdlight", "container_sfer", "container_sfer", "container_exploder", "container_exploder"];
+  env.COMBAT_FORMATIONS.archivecontainers.enemies = ["listener", "bstrdlight", "maintcloak", "container_sfer", "container_sfer", "container_exploder", "container_exploder"];
 //Bosses
   env.COMBAT_FORMATIONS.archiveshelfminiboss.enemies = ["bstrdlight", "bstrdshelf", "maintcloak"];
   env.COMBAT_FORMATIONS.bstrdboss.enemies = ["maintcloak", "bstrdboss", "bstrdboss_lowintensity", "bstrdlight"];
