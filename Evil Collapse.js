@@ -36,7 +36,7 @@ document.addEventListener('corru_resources_added', ()=>{
                     subject.state == "dead" || 
                     this.status.affecting.disablerUsed
     ) return;
-    addStatus({target: subject, origin, status: "weakened", length: 3, dontDrawIconLine: true});
+    addStatus({target: subject, origin, status: "weakened", length: 2, dontDrawIconLine: true});
     if(!hasStatus(subject, "weakened")) return;
     env.rpg.turnData[`${origin.id}-disabler`] = true;
     drawEffectLine(this.status, subject, {
@@ -220,19 +220,19 @@ document.addEventListener('corru_resources_added', ()=>{
   };
 
   env.ACTIONS.archiveshelf_risky.details = {
-            flavor: "'overreach in attempt to strike dodging target'",
+            flavor: "'overreach in attempt to strike dodging target  TEST'",
             onHit: `'[STAT::amt]'`,
             onCrit: `'[STATUS::stun] [STATUS::rot] [STATUS::puncture]'`,
             conditional: `<em><o-col>USER::</o-col></em>'[STATUS::vulnerable]';'next options will be sweeping attacks'`,
         };
   env.ACTIONS.archiveshelf_risky.stats = {
-    accuracy: 0.5,
-    crit: 1,
+    accuracy: 0.6,
+    crit: 999,
     amt: 2,
     status: {
       vulnerable: {
         name: 'vulnerable',
-        length: 2
+        length: 1
       },
       puncture: {
         name: 'puncture',
@@ -259,7 +259,7 @@ document.addEventListener('corru_resources_added', ()=>{
         rate: 1
       },
       genExec: ()=> {
-        addStatus({target: user, origin: user, status: "vulnerable", length: 2})
+        addStatus({target: user, origin: user, status: "vulnerable", length: 1})
       },
       critExec: ()=> {
         addStatus({target: target, origin: user, status: "stun", length: 1})
@@ -276,7 +276,7 @@ document.addEventListener('corru_resources_added', ()=>{
             onCrit: `'[STATUS::critical_flaw]'`,
             conditional: `<em><o-col>USER::</o-col></em>'next options will be direct strikes'`,
   };
-  env.ACTIONS.archiveshelf_sweep.stats.stats = {
+  env.ACTIONS.archiveshelf_sweep.stats = {
     accuracy: 0.8,
     crit: 0.33,
     amt: 2,
@@ -414,7 +414,7 @@ document.addEventListener('corru_resources_added', ()=>{
             user.usedPry = true
             setTimeout(()=>advanceTurn(user), env.ADVANCE_RATE + 1000)
         }
-//
+
 //Enemies
 //Shared enemy Dialogue
   let reactionOverride = {
@@ -585,7 +585,7 @@ document.addEventListener('corru_resources_added', ()=>{
 //Dozkallvi
 //Foundation Golem
 //Painshelf
-  env.COMBAT_ACTORS.bstrdshelf.actions = ["special_archiveshelf_annihilate"];
+  env.COMBAT_ACTORS.bstrdshelf.actions = ["special_archiveshelf_annihilate", "special_archiveshelf_annihilate", "husk_declaration"];
   env.COMBAT_ACTORS.bstrdshelf.reactions = {
             receive_hit: ["...", "...weak...", "...not enough...", "...frail...", "...no..."],
             receive_crit: ["...won't stop...", "...can't stop...", "...can't back down...", "...cease..."],
