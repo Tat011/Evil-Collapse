@@ -220,14 +220,14 @@ document.addEventListener('corru_resources_added', ()=>{
   };
 
   env.ACTIONS.archiveshelf_risky.details = {
-            flavor: "'overreach in attempt to strike dodging target  TEST'",
+            flavor: "'overreach in attempt to strike dodging target'",
             onHit: `'[STAT::amt]'`,
             onCrit: `'[STATUS::stun] [STATUS::rot] [STATUS::puncture]'`,
             conditional: `<em><o-col>USER::</o-col></em>'[STATUS::vulnerable]';'next options will be sweeping attacks'`,
         };
   env.ACTIONS.archiveshelf_risky.stats = {
     accuracy: 0.6,
-    crit: 999,
+    crit: 200,
     amt: 2,
     status: {
       vulnerable: {
@@ -295,7 +295,7 @@ document.addEventListener('corru_resources_added', ()=>{
   env.ACTIONS.special_movefoe_tumble.stats = {
     accuracy: 0.8,
     crit: 0.33,
-    amt: 2,
+    amt: 1,
     status: {
       vulnerable: {name: "vulnerable", length: 3},
       critical_flaw: {name: "critical_flaw", length: 3}
@@ -413,6 +413,113 @@ document.addEventListener('corru_resources_added', ()=>{
             midCombatActorAdd(user.team, summon, 'right')
             user.usedPry = true
             setTimeout(()=>advanceTurn(user), env.ADVANCE_RATE + 1000)
+        }
+//PHASE 2
+  env.ACTIONS.incoherent_movefriend.exec = function(user, target) {
+            env.rpg.effectMessage.action({
+                user,
+                target,
+                hit: "crit",
+                action: !env.rpg.mfUsesLeft ? "THE WALLS TWIST AROUND THE WHOLE TEAM" : "THE WALLS SHIFT AROUND %TARGET"
+            })
+
+            if(!env.rpg.mfUsesLeft) {
+                env.rpg.effectMessage.action({
+                    user,
+                    target: user,
+                    hit: "crit",
+                    isMinor: true,
+                    reason: "last stand",
+                    action: "%USER is losing control..."
+                })
+            }
+
+            if(!user.usedPry) {
+                midCombatActorAdd(env.rpg.enemyTeam, 'movefoe_tendrils', 'left')
+                midCombatActorAdd(env.rpg.enemyTeam, 'movefoe_tendrils', 'right')
+                env.rpg.settings.turnCallback()
+
+                user.usedPry = true
+
+                env.rpg.effectMessage.action({
+                    user,
+                    target: user,
+                    hit: true,
+                    isMinor: true,
+                    reason: "pry",
+                    action: "%USER DRAWS TENDRILS FROM THE WALLS"
+                })
+            }
+
+            let lastStand = !env.rpg.mfUsesLeft
+            if(lastStand) {
+                user.hp = 0 // force last stand state
+                updateStats({actor: user})
+            }
+
+            //vortex on screen, circle expands into fullscreen bg (animation in CSS)
+            env.rpg.insertAdjacentHTML('beforeend', `
+                <div class="golem-vortex bh-action-${user.slug} bh-action"></div>
+                <div id="${user.slug}-bh" class="bh-action-${user.slug} bh-action">
+                    <div class="bh_damage-wrapper"></div>
+                </div>
+            `);
+            env.rpg.vortex = document.querySelector(`.golem-vortex.bh-action-${user.slug}`)
+            env.rpg.actionZone = document.querySelector(`#${user.slug}-bh`)
+
+            //animate the vortex
+            setTimeout(()=>{
+                env.rpg.vortex.classList.add('active');
+
+                //we should set this up so that on last stand, it randomly targets the whole (living) team
+                //additionally, it should end early on full death
+                bh_start({
+                    playerEl: `<div id="bh_player" class="notice" style="background-image:url(${target.portraitUrl})"></div>`, 
+                    onHit: () => {
+                        var hit
+                        if(lastStand) {
+                            let possibleTargets = env.rpg.allyTeam.members.filter(member => member.hp > 0)
+    
+                            if(possibleTargets.length == 0) env.bulletHell.complete()
+                            hit = combatHit(possibleTargets[rand(0, possibleTargets.length)], {amt: 1, acc: 3, crit: 0, origin: user});
+                            if(hit) play('hit', 1.5, 0.5); else play("miss", 1.25, 0.5)
+                            
+                        } else if(target.state != "dead") {
+                            hit = combatHit(target, {amt: 3, acc: 7.5, crit: 0, origin: user}); // results in about 66% acc when faced with evasion
+                            if(hit) play('hit', 1.5, 0.5); else play("miss", 1.25, 0.5)
+                            if(target.hp == 0) env.bulletHell.complete()
+                        } else {
+                            env.bulletHell.complete()
+                        }
+    
+                        if(hit == false) return "dodged"; else return "damaged"
+                    }
+                })
+
+                //animation done, activate ze game
+                setTimeout(()=>{
+                    body.classList.add('in-golem-vortex')
+                    env.rpg.actionZone.classList.add('active')
+                    document.querySelector(`#bh_player`).classList.add('active')
+
+                    //change moves based on uses left
+                    switch(env.rpg.mfUsesLeft) {
+                        case 5: startDialogue("d3_movespecial"); user.tutorial = true; break // tutorial
+                        case 4: bh_movefriend({level: "healthy2"}); break // easy
+                        case 3: bh_movefriend({level: "tutorial"}); break // med
+                        case 2: bh_movefriend({level: "advanced1"}); break // hard
+                        case 1: bh_movefriend({level: "advanced3"}); break // hard
+                        default: case 0: bh_movefriend({level: "lastStand", duration: 70000}); break // last
+                    }
+
+                    env.rpg.mfUsesLeft--;
+                    env.rpg.effectMessage.close()
+                }, 500);
+
+                setTimeout(()=>{
+                    env.rpg.classList.add('cull');
+                }, 1500);
+            }, env.ADVANCE_RATE * 0.5)
         }
 
 //Enemies
@@ -585,7 +692,9 @@ document.addEventListener('corru_resources_added', ()=>{
 //Dozkallvi
 //Foundation Golem
 //Painshelf
-  env.COMBAT_ACTORS.bstrdshelf.actions = ["special_archiveshelf_annihilate", "special_archiveshelf_annihilate", "husk_declaration"];
+  env.COMBAT_ACTORS.bstrdshelf.maxhp = [150];
+  env.COMBAT_ACTORS.bstrdshelf.hp = [150];
+  env.COMBAT_ACTORS.bstrdshelf.actions = ["special_archiveshelf_annihilate", "special_archiveshelf_annihilate", "husk_attack_rot", "husk_declaration"];
   env.COMBAT_ACTORS.bstrdshelf.reactions = {
             receive_hit: ["...", "...weak...", "...not enough...", "...frail...", "...no..."],
             receive_crit: ["...won't stop...", "...can't stop...", "...can't back down...", "...cease..."],
@@ -619,7 +728,6 @@ document.addEventListener('corru_resources_added', ()=>{
             give_redirection: ["...fear...", "...face me...", "...you...", "...hit me...", "...charge...", "...will not back down..."],
   };
 //BSTRD
-  env.COMBAT_ACTORS.bstrdboss.hp = [100];
   env.COMBAT_ACTORS.bstrdboss.reactions = {
             receive_hit: ["OW! just kidding ;-)", "that all? '_'", "i ALMSOT felt that :P", "tis only a scratch!", "ZZZZZZ"],
             receive_crit: ["NICE HIT!!!", "OW!!!!!!", "BAD ASS!", "COOL MOVES!", "Thas it!", "more of that! ;-)"],
@@ -656,6 +764,7 @@ document.addEventListener('corru_resources_added', ()=>{
   env.COMBAT_ACTORS.bstrdboss_lowintensity.reactions = env.COMBAT_ACTORS.bstrdboss.reactions;
   env.COMBAT_ACTORS.bstrd.reactions = env.COMBAT_ACTORS.bstrdboss.reactions;
 //BSTRD Light
+  env.COMBAT_ACTORS.bstrdlight.readoutActor = "bstrd";
   env.COMBAT_ACTORS.bstrdlight.reactions = {
             receive_hit: ["OW! just kidding ;-)", "that all? '_'", "i ALMSOT felt that :P", "just fanning de flames!", "ZZZZZZ"],
             receive_crit: ["NICE HIT!!!", "OW!!!!!!", "BAD ASS!", "COOL MOVES!", "Thas it!", "more of that! ;-)"],
@@ -1041,7 +1150,7 @@ document.addEventListener('corru_resources_added', ()=>{
   env.COMBAT_FORMATIONS.personnel_attendant.enemies = ["personnel_veilklight", "personnel_veilklight", "bstrdlight", "personnel_attendant", "kivskin"];
 //Movefoe
   env.COMBAT_FORMATIONS.movefriend_survival.enemies = ["movefoe_tendrils", "movefoe_driver", "movefoe_relay", "movefoe_tendrils"];
-
+//Evil Mode
 //Evil Mode tutorial
   env.COMBAT_FORMATIONS.archive_intro.enemies = ["bstrdlight", "maintcloak", "container_evader", "archival_golem", "kivskin"];
 //Main
@@ -1053,16 +1162,22 @@ document.addEventListener('corru_resources_added', ()=>{
   env.COMBAT_FORMATIONS.archivecontainers.enemies = ["listener", "bstrdlight", "maintcloak", "container_sfer", "container_sfer", "container_exploder", "container_exploder"];
 //Bosses
   env.COMBAT_FORMATIONS.archiveshelfminiboss.enemies = ["bstrdlight", "bstrdshelf", "maintcloak"];
-  env.COMBAT_FORMATIONS.bstrdboss.enemies = ["maintcloak", "bstrdboss", "bstrdboss_lowintensity", "bstrdlight"];
-
+  env.COMBAT_FORMATIONS.bstrdboss.enemies = ["bstrdlight", "bstrdboss", "bstrdboss_lowintensity", "maintcloak"];
+//Golem Maintenance
 //Golem Personnel
-
+  env.COMBAT_FORMATIONS.golem_husks_1.enemies = ["bstrdlight", "husk_support", "husk_observer", "husk_striker", "husk_guard"];
 //Lobby
-
+  env.COMBAT_FORMATIONS.golem_husks_2.enemies = ["surgeon_golem", "surgeon_golem", "husk_observer", "basic_golem", "husk_guard"];
+//Dullzica side
+  env.COMBAT_FORMATIONS.golem_husks_interlude.enemies = ["kivskin", "husk_support", "maintcloak", "husk_striker", "kivskin"];
 //Dullzica
-
+  env.COMBAT_FORMATIONS.golem_husks_3.enemies = ["husk_support", "husk_observer", "dull_keeper", "husk_striker", "husk_guard"];
+//Dozkallvi side
+  env.COMBAT_FORMATIONS.golem_constructor.enemies = ["listener", "surgeon_golem", "constructor_vat", "constructor_vat", "constructor_boss", "constructor_vat", "constructor_vat"];
 //Dozkallvi
-
+  env.COMBAT_FORMATIONS.golem_kivii.enemies = ["kivii_gauntlet", "kivii_gauntlet", "kivii", "kivii_gauntlet", "kivii_gauntlet"];
+//Translation Core side
+  env.COMBAT_FORMATIONS.golem_repair.enemies = ["repairfriend", "wounded_archival_golem", "wounded_archival_golem", "repairfriend", "kivskin"];
 //Translation Core
 
   }});
